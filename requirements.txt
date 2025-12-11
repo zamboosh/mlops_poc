@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+transformers
+pydantic
+python-dotenv
+torch==2.9.1
