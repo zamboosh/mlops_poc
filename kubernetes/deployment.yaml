@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hf-sentiment-deployment
+  labels:
+    app: hf-sentiment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hf-sentiment
+  template:
+    metadata:
+      labels:
+        app: hf-sentiment
+    spec:
+      containers:
+      - name: hf-sentiment-api
+        # TODO: Replace <YOUR_DOCKER_USERNAME> with your actual Docker Hub username.
+        image: <YOUR_DOCKER_USERNAME>/hf-sentiment-api-fixed:latest
+        imagePullPolicy: IfNotPresent # Useful for local development if image is present locally
+        ports:
+        - containerPort: 8080
+          name: http
+        
+        # Resources are important for ML models. 
+        # These are initial estimates; adjust based on monitoring.
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"  # ML models can be memory hungry
+            cpu: "1000m"
+
+        # Liveness probe checks if the container is running and healthy
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        
+        # Readiness probe checks if the container is ready to accept traffic (model loaded)
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5

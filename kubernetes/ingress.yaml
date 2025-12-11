@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hf-sentiment-ingress
+  annotations:
+    # Annotations for NGINX Ingress Controller. 
+    # If you are using a different controller, these might vary.
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx # Common class name for NGINX ingress
+  rules:
+  - host: sentiment.local # You can map this to 127.0.0.1 in your /etc/hosts file
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hf-sentiment-service
+            port:
+              number: 8000
