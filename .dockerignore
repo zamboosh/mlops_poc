@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+venv
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode
+.idea
+
+# Local environment variables
+.env
+
+# Readme and other docs not needed in image
+README.md
+task.md
+implementation_plan.md
