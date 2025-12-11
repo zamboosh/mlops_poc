@@ -27,7 +27,7 @@ jobs:
     # Define environment variables for the job
     env:
       REGISTRY: docker.io # Target registry (e.g., docker.io, ghcr.io, your.ecr.aws)
-      IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/hf-sentiment-api # Replace 'hf-sentiment-api' with your desired repo name
+      IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/hf-sentiment-api-fixed # Replace 'hf-sentiment-api' with your desired repo name
 
     steps:
       - name: Checkout Repository
@@ -54,16 +54,16 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,format=short,prefix=sha- # e.g., sha-e3a1f8b (Unique Tag)
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }} # Tag 'latest' only on main branch pushes
+            type=sha,format=short,prefix=sha- 
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }} 
 
       # --- 6. Build and Push the Docker Image ---
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: . # Looks for Dockerfile in the root directory
-          push: true # Important: Set to true to push the image to the registry
-          tags: ${{ steps.meta.outputs.tags }} # Uses the generated tags (sha-xxxx and latest)
-          labels: ${{ steps.meta.outputs.labels }} # Adds useful metadata/labels
-          cache-from: type=gha # Uses GitHub Actions cache for faster builds
-          cache-to: type=gha,mode=max # Stores cache for future builds
+          context: . 
+          push: true 
+          tags: ${{ steps.meta.outputs.tags }} 
+          labels: ${{ steps.meta.outputs.labels }} 
+          cache-from: type=gha 
+          cache-to: type=gha,mode=max 

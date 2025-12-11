@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starfleet Sentiment Analysis</title>
+    <style>
+        :root {
+            --lcars-bg: #000000;
+            --lcars-orange: #ff9900;
+            --lcars-purple: #cc99cc;
+            --lcars-blue: #99ccff;
+            --lcars-red: #cc6666;
+            --lcars-beige: #ffcc99;
+            --font-main: 'Arial', sans-serif; /* LCARS uses Helvetica Ultra Compressed usually, but Arial is fine */
+        }
+
+        body {
+            background-color: var(--lcars-bg);
+            color: var(--lcars-orange);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        .lcars-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .lcars-sidebar {
+            width: 150px;
+            background-color: var(--lcars-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding-right: 10px;
+        }
+
+        .lcars-elbow {
+            width: 100px; /* Reduced width to prevent overflow/overlap issues */
+            height: 30px; /* Reduced height */
+            background-color: var(--lcars-purple);
+            border-bottom-left-radius: 30px;
+            margin-bottom: 10px;
+        }
+
+        .lcars-bar {
+            width: 100px; /* Match elbow width */
+            height: 20px;
+            background-color: var(--lcars-beige);
+            margin-bottom: 5px;
+        }
+        
+        .lcars-bar.blue { background-color: var(--lcars-blue); height: 40px; }
+        .lcars-bar.red { background-color: var(--lcars-red); height: 15px; }
+
+        .lcars-main {
+            flex-grow: 1;
+            padding: 20px;
+            border-top: 30px solid var(--lcars-purple);
+            border-left: 15px solid var(--lcars-bg); /* Gap */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--lcars-orange);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 600px;
+        }
+
+        label {
+            font-size: 1.2rem;
+            color: var(--lcars-blue);
+        }
+
+        textarea {
+            background-color: #222;
+            border: 2px solid var(--lcars-orange);
+            color: var(--lcars-beige);
+            padding: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            border-radius: 10px;
+            border-bottom-right-radius: 0;
+            outline: none;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--lcars-red);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            align-self: flex-start;
+            text-transform: uppercase;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ff3333;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid var(--lcars-blue);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .data-label { color: var(--lcars-purple); }
+        .data-value { color: var(--lcars-beige); font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div class="lcars-container">
+        <div class="lcars-sidebar">
+            <div class="lcars-elbow"></div>
+            <div class="lcars-bar"></div>
+            <div class="lcars-bar blue"></div>
+            <div class="lcars-bar red"></div>
+        </div>
+        <div class="lcars-main">
+            <h1>Sentiment Analysis Link</h1>
+            
+            <div class="input-group">
+                <label for="textInput">Enter Subspace Message:</label>
+                <textarea id="textInput" rows="4" placeholder="Type your text here..."></textarea>
+                <button onclick="analyzeSentiment()">Engage</button>
+            </div>
+
+            <div id="result">
+                <div class="data-row">
+                    <span class="data-label">Analysis:</span>
+                    <span id="labelVal" class="data-value"></span>
+                </div>
+                <div class="data-row">
+                    <span class="data-label">Confidence:</span>
+                    <span id="scoreVal" class="data-value"></span>
+                </div>
+            </div>
+            <div style="flex-grow:1"></div>
+             <div style="text-align: right; color: var(--lcars-red); font-size: 0.8rem;">
+                LCARS INTERFACE 24-592
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeSentiment() {
+            const text = document.getElementById('textInput').value;
+            if (!text.trim()) {
+                alert("Please enter a message to analyze.");
+                return;
+            }
+
+            const button = document.querySelector('button');
+            const originalText = button.textContent;
+            button.textContent = "Processing...";
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                document.getElementById('labelVal').textContent = data.label;
+                // Format score as percentage with 2 decimals
+                document.getElementById('scoreVal').textContent = (data.score * 100).toFixed(2) + '%';
+                
+                document.getElementById('result').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert("Sensors unable to process request. Check communications.");
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

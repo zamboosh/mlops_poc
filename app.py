@@ -27,15 +27,27 @@ except Exception as e:
     print(f"Error loading model: {e}")
     classifier = None
 
+
 # --- 3. Initialize FastAPI App ---
 app = FastAPI(
     title="Hugging Face Sentiment Analyzer",
     description="A service to classify text sentiment using DistilBERT.",
 )
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Mount the static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/")
-def home():
+async def read_index():
+    return FileResponse("static/index.html")
+
+
+@app.get("/health")
+def health_check():
     """Simple health check endpoint."""
     return {"status": "ok", "model": MODEL_NAME}
 
